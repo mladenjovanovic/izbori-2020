@@ -5,6 +5,7 @@ date: "7/16/2020"
 output: 
   html_document:
     df_print: paged
+    keep_md: true
   github_document: default
 editor_options:
   chunk_output_type: console
@@ -194,16 +195,50 @@ ggplot(
   ylab("Proporcija")
 ```
 
-Bez nule:
+Kada se izbace rezultati gde je broj glasova 0:
 
 ```{r}
 ggplot(
-  filter(decimale, last_digit != "0"),
+  filter(decimale, `Broj glasova` > 0),
   aes(x = last_digit)
 ) +
   theme_cowplot(8) +
   geom_bar(aes(y = (..count..)/sum(..count..))) +
-  geom_hline(yintercept = 0.1, alpha = 0.5, linetype = "dashed") +
+  geom_hline(yintercept = 0.1, alpha = 0.5) +
+  geom_hline(yintercept = 0.11, alpha = 0.5, linetype = "dashed") +
+  geom_hline(yintercept = 0.09, alpha = 0.5, linetype = "dashed") +
+  xlab("Poslednja decimala") +
+  ylab("Proporcija")
+```
+
+Kada se izbace rezultati gde je broj glasova manji ili jednak 10:
+
+```{r}
+ggplot(
+  filter(decimale, `Broj glasova` >= 10),
+  aes(x = last_digit)
+) +
+  theme_cowplot(8) +
+  geom_bar(aes(y = (..count..)/sum(..count..))) +
+  geom_hline(yintercept = 0.1, alpha = 0.5) +
+  geom_hline(yintercept = 0.11, alpha = 0.5, linetype = "dashed") +
+  geom_hline(yintercept = 0.09, alpha = 0.5, linetype = "dashed") +
+  xlab("Poslednja decimala") +
+  ylab("Proporcija")
+```
+
+Kada se izbace rezultati gde je broj glasova manji ili jednak 100:
+
+```{r}
+ggplot(
+  filter(decimale, `Broj glasova` >= 100),
+  aes(x = last_digit)
+) +
+  theme_cowplot(8) +
+  geom_bar(aes(y = (..count..)/sum(..count..))) +
+  geom_hline(yintercept = 0.1, alpha = 0.5) +
+  geom_hline(yintercept = 0.11, alpha = 0.5, linetype = "dashed") +
+  geom_hline(yintercept = 0.09, alpha = 0.5, linetype = "dashed") +
   xlab("Poslednja decimala") +
   ylab("Proporcija")
 ```
@@ -222,23 +257,106 @@ ggplot(
 ) +
   theme_cowplot(8) +
   geom_bar(aes(y = (..count..))) +
-  geom_hline(yintercept = 0.1, alpha = 0.5, linetype = "dashed") +
   facet_wrap(~`Kandidat`, scales = "free_y") +
   xlab("Poslednja decimala") +
-  ylab("Proporcija")
+  ylab("Broj pojavljivanja")
 ```
 
-Bez nule:
+Kada se izbace rezultati gde je broj glasova 0:
 
 ```{r fig.height=6}
 ggplot(
-  filter(decimale, last_digit != "0"),
+  filter(decimale, `Broj glasova` > 0),
   aes(x = last_digit)
 ) +
   theme_cowplot(8) +
   geom_bar(aes(y = (..count..))) +
-  geom_hline(yintercept = 0.1, alpha = 0.5, linetype = "dashed") +
   facet_wrap(~`Kandidat`, scales = "free_y") +
   xlab("Poslednja decimala") +
-  ylab("Proporcija")
+  ylab("Broj pojavljivanja")
+```
+
+Kada se izbace rezultati gde je broj glasova manji ili jednak 10:
+
+```{r fig.height=6}
+ggplot(
+  filter(decimale, `Broj glasova` >= 10),
+  aes(x = last_digit)
+) +
+  theme_cowplot(8) +
+  geom_bar(aes(y = (..count..))) +
+  facet_wrap(~`Kandidat`, scales = "free_y") +
+  xlab("Poslednja decimala") +
+  ylab("Broj pojavljivanja")
+```
+
+Kada se izbace rezultati gde je broj glasova manji ili jednak 100:
+
+```{r fig.height=6}
+ggplot(
+  filter(decimale, `Broj glasova` >= 100),
+  aes(x = last_digit)
+) +
+  theme_cowplot(8) +
+  geom_bar(aes(y = (..count..))) +
+  facet_wrap(~`Kandidat`, scales = "free_y") +
+  xlab("Poslednja decimala") +
+  ylab("Broj pojavljivanja")
+```
+
+### Analiza poslednje decimale po okrugu
+
+```{r fig.height=6}
+ggplot(
+  decimale,
+  aes(x = last_digit)
+) +
+  theme_cowplot(8) +
+  geom_bar(aes(y = (..count..))) +
+  facet_wrap(~`Naziv okruga`, scales = "free_y") +
+  xlab("Poslednja decimala") +
+  ylab("Broj pojavljivanja")
+```
+
+
+Kada se izbace rezultati gde je broj glasova 0:
+
+```{r fig.height=6}
+ggplot(
+  filter(decimale, `Broj glasova` > 0),
+  aes(x = last_digit)
+) +
+  theme_cowplot(8) +
+  geom_bar(aes(y = (..count..))) +
+  facet_wrap(~`Naziv okruga`, scales = "free_y") +
+  xlab("Poslednja decimala") +
+  ylab("Broj pojavljivanja")
+```
+
+Kada se izbace rezultati gde je broj glasova manji ili jednak 10:
+
+```{r fig.height=6}
+ggplot(
+  filter(decimale, `Broj glasova` >= 10),
+  aes(x = last_digit)
+) +
+  theme_cowplot(8) +
+  geom_bar(aes(y = (..count..))) +
+  facet_wrap(~`Naziv okruga`, scales = "free_y") +
+  xlab("Poslednja decimala") +
+  ylab("Broj pojavljivanja")
+```
+
+Kada se izbace rezultati gde je broj glasova manji ili jednak 100:
+
+```{r fig.height=6}
+ggplot(
+  filter(decimale, `Broj glasova` >= 100),
+  aes(x = last_digit)
+) +
+  theme_cowplot(8) +
+  geom_bar(aes(y = (..count..))) +
+  facet_wrap(~`Naziv okruga`, scales = "free_y") +
+  xlab("Poslednja decimala") +
+  ylab("Broj pojavljivanja")
 ```
