@@ -1,0 +1,245 @@
+---
+title: "Analiza izbora 2020"
+author: "Mladen Jovanovic (@physical_prep)"
+date: "7/16/2020"
+output:
+  html_document:
+    df_print: paged
+  word_document: default
+  pdf_document: default
+editor_options:
+  chunk_output_type: console
+---
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+require(knitr)
+knitr::opts_chunk$set(
+  comment = "#>",
+  collapse = TRUE,
+  cache = FALSE,
+  fig.retina = 0.8, # figures are either vectors or 300 dpi diagrams
+  dpi = 600,
+  out.width = "90%",
+  fig.align = "center",
+  fig.width = 6,
+  fig.height = 6 * 0.618, # 1 / phi
+  fig.show = "hold",
+  echo = TRUE,
+  warning = FALSE,
+  message = FALSE
+)
+```
+
+# Podaci
+
+Podaci su preuzeti sa sajta RIK-a "Rezultati po birackim mestima" [^Link] (16-07-2020).  
+
+[^Link]: https://www.rik.parlament.gov.rs/tekst/9386/ukupni-rezultati-izbora-za-narodne-poslanike-narodne-skupstine-2020-godine.php
+
+# Analiza rezultata
+
+Analiza rezultata je uradjena u R jeziku, koristeci R Markdown koji omogucuje reprodukciju analize. Kod koji je koriscen ce biti vidljiv u ovom dokumentu radi transparentnosti, a samim time i lakseg uocavanja gresaka. 
+
+```{r}
+require(tidyverse)
+require(cowplot)
+
+elections <- read_csv("izbori.csv")
+
+head(elections)
+```
+
+# Izlaznost po okruzima
+
+```{r}
+izlaznost <- elections %>%
+  group_by(`Naziv okruga`) %>%
+  summarize(
+    `Upisani biraci` = sum(`Upisani biraci`),
+    `Primljeni` = sum(`Primljeni`),
+    `Neupotrebljeni` = sum(`Neupotrebljeni`),
+    `Glasali` = sum(`Glasali`),
+    `U glasackoj kutiji` = sum(`U glasackoj kutiji`),
+    `Nevazeci` = sum(`Nevazeci`),
+    `Vazeci` = sum(`Vazeci`)
+  ) %>%
+  ungroup() %>%
+  mutate(
+    `Izlaznost` = `Glasali` / `Upisani biraci`,
+    `Naziv okruga` = fct_reorder(`Naziv okruga`, `Izlaznost`),
+    preko_50 = ifelse(`Izlaznost` >= 0.5, TRUE, FALSE)
+  )
+
+head(izlaznost)
+```
+
+```{r}
+ggplot(
+  izlaznost,
+  aes(
+    x = `Naziv okruga`,
+    y = `Izlaznost`,
+    fill = `preko_50`
+  )
+) +
+  theme_cowplot(8) +
+  geom_bar(stat = "identity", alpha = 0.8) +
+  geom_hline(yintercept = 0.5, alpha = 0.5, linetype = "dashed") +
+  coord_flip() +
+  xlab(NULL) +
+  theme(legend.position = "none") +
+  scale_fill_manual(values = c("dark red", "dark grey"))
+```
+
+# Broj glasova po okruzima
+
+```{r}
+glasovi <- elections %>%
+  gather(key = "Kandidat", value = "Broj glasova", -(1:12)) %>%
+  group_by(`Naziv okruga`, `Kandidat`) %>%
+  summarize(
+    `Upisani biraci` = sum(`Upisani biraci`),
+    `Primljeni` = sum(`Primljeni`),
+    `Neupotrebljeni` = sum(`Neupotrebljeni`),
+    `Glasali` = sum(`Glasali`),
+    `U glasackoj kutiji` = sum(`U glasackoj kutiji`),
+    `Nevazeci` = sum(`Nevazeci`),
+    `Vazeci` = sum(`Vazeci`),
+    `Broj glasova` = sum(`Broj glasova`)
+  ) %>%
+  ungroup() %>%
+  mutate(
+    `Procenat` = `Broj glasova` / `Vazeci`,
+    preko_3_posto = ifelse(`Procenat` >= 0.03, TRUE, FALSE),
+    threshold = `Vazeci` * 0.03)
+
+head(glasovi)
+```
+
+```{r fig.height=10}
+ggplot(
+  glasovi,
+  aes(
+    x = `Kandidat`,
+    y = `Broj glasova`,
+    fill = `preko_3_posto`
+  )
+) +
+  theme_cowplot(6) +
+  geom_bar(stat = "identity", alpha = 0.8) +
+  geom_hline(aes(yintercept = threshold), alpha = 0.5, linetype = "dashed") +
+  coord_flip() +
+  xlab(NULL) +
+  ylab("Broj glasova (log10)") +
+  facet_wrap(~`Naziv okruga`, scales = "free_x") +
+  theme(legend.position = "none") +
+  scale_fill_manual(values = c("dark red", "dark grey")) +
+  scale_y_log10()
+```
+
+```{r fig.height=10}
+ggplot(
+  glasovi,
+  aes(
+    x = `Kandidat`,
+    y = `Procenat`,
+    fill = `preko_3_posto`
+  )
+) +
+  theme_cowplot(5) +
+  geom_bar(stat = "identity", alpha = 0.8) +
+  geom_hline(yintercept = 0.03, alpha = 0.5, linetype = "dashed") +
+  coord_flip() +
+  xlab(NULL) +
+  ylab("Procenat broja glasova") +
+  facet_wrap(~`Naziv okruga`, scales = "free_x") +
+  theme(legend.position = "none") +
+  scale_fill_manual(values = c("dark red", "dark grey")) 
+```
+
+# Analiza poslednje decimale broja glasova
+
+Ova analiza je bazirana na sledecem radu:
+
+Beber, B., & Scacco, A. (2012). What the Numbers Say: A Digit-Based Test for Election Fraud. Political Analysis, 20(2), 211-234. doi:10.1093/pan/mps003
+
+**Abstract**
+>Is it possible to detect manipulation by looking only at electoral returns? Drawing on work in psychology, we exploit individuals' biases in generating numbers to highlight suspicious digit patterns in reported vote counts. First, we show that fair election procedures produce returns where last digits occur with equal frequency, but laboratory experiments indicate that individuals tend to favor some numerals over others, even when subjects have incentives to properly randomize. Second, individuals underestimate the likelihood of digit repetition in sequences of random integers, so we should observe relatively few instances of repeated numbers in manipulated vote tallies. Third, laboratory experiments demonstrate a preference for pairs of adjacent digits, which suggests that such pairs should be abundant on fraudulent return sheets. Fourth, subjects avoid pairs of distant numerals, so those should appear with lower frequency on tainted returns. We test for deviations in digit patterns using data from Sweden's 2002 parliamentary elections, Senegal's 2000 and 2007 presidential elections, and previously unavailable results from Nigeria's 2003 presidential election. In line with observers' expectations, we find substantial evidence that manipulation occurred in Nigeria as well as in Senegal in 2007.
+
+```{r}
+require(stringr)
+
+decimale <- elections %>%
+  gather(key = "Kandidat", value = "Broj glasova", -(1:12)) %>%
+  mutate(
+    last_digit = factor(str_sub(`Broj glasova`, -1, -1))
+  )
+
+head(decimale)
+```
+
+### Analiza poslednje decimale ukupno
+
+```{r}
+table(decimale$last_digit)
+```
+
+```{r}
+ggplot(
+  decimale,
+  aes(x = last_digit)
+) +
+  theme_cowplot(8) +
+  geom_bar(aes(y = (..count..)/sum(..count..))) +
+  geom_hline(yintercept = 0.1, alpha = 0.5, linetype = "dashed") +
+  xlab("Poslednja decimala") +
+  ylab("Proporcija")
+```
+
+Bez nule:
+
+```{r}
+ggplot(
+  filter(decimale, last_digit != "0"),
+  aes(x = last_digit)
+) +
+  theme_cowplot(8) +
+  geom_bar(aes(y = (..count..)/sum(..count..))) +
+  geom_hline(yintercept = 0.1, alpha = 0.5, linetype = "dashed") +
+  xlab("Poslednja decimala") +
+  ylab("Proporcija")
+```
+
+
+### Analiza poslednje decimale po kandidatu
+
+```{r}
+table(decimale$Kandidat, decimale$last_digit)
+```
+
+```{r fig.height=6}
+ggplot(
+  decimale,
+  aes(x = last_digit)
+) +
+  theme_cowplot(8) +
+  geom_bar(aes(y = (..count..))) +
+  geom_hline(yintercept = 0.1, alpha = 0.5, linetype = "dashed") +
+  facet_wrap(~`Kandidat`, scales = "free_y") +
+  xlab("Poslednja decimala") +
+  ylab("Proporcija")
+```
+
+Bez nule:
+
+```{r fig.height=6}
+ggplot(
+  filter(decimale, last_digit != "0"),
+  aes(x = last_digit)
+) +
+  theme_cowplot(8) +
+  geom_bar(aes(y = (..count..))) +
+  geom_hline(yintercept = 0.1, alpha = 0.5, linetype = "dashed") +
+  facet_wrap(~`Kandidat`, scales = "free_y") +
+  xlab("Poslednja decimala") +
+  ylab("Proporcija")
+```
