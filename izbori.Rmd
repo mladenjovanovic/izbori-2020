@@ -2,11 +2,10 @@
 title: "Analiza izbora 2020"
 author: "Mladen Jovanovic (@physical_prep)"
 date: "7/16/2020"
-output:
+output: 
   html_document:
     df_print: paged
-  word_document: default
-  pdf_document: default
+  github_document: default
 editor_options:
   chunk_output_type: console
 ---
