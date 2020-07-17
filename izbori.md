@@ -1,47 +1,50 @@
----
-title: "Analiza izbora 2020"
-author: "Mladen Jovanovic (@physical_prep)"
-date: "7/16/2020"
-output: 
-  html_document:
-    df_print: paged
-    keep_md: true
-  github_document: default
-editor_options:
-  chunk_output_type: console
----
-
+Analiza izbora 2020
+================
+Mladen Jovanovic (@physical\_prep)
+7/16/2020
 
 # Podaci
 
-Podaci su preuzeti sa sajta RIK-a "Rezultati po birackim mestima" [^Link] (16-07-2020).  
-
-[^Link]: https://www.rik.parlament.gov.rs/tekst/9386/ukupni-rezultati-izbora-za-narodne-poslanike-narodne-skupstine-2020-godine.php
+Podaci su preuzeti sa sajta RIK-a “Rezultati po birackim mestima” \[1\]
+(16-07-2020).
 
 # Analiza rezultata
 
-Analiza rezultata je uradjena u R jeziku, koristeci R Markdown koji omogucuje reprodukciju analize. Kod koji je koriscen ce biti vidljiv u ovom dokumentu radi transparentnosti, a samim time i lakseg uocavanja gresaka. 
+Analiza rezultata je uradjena u R jeziku, koristeci R Markdown koji
+omogucuje reprodukciju analize. Kod koji je koriscen ce biti vidljiv u
+ovom dokumentu radi transparentnosti, a samim time i lakseg uocavanja
+gresaka.
 
-
-```r
+``` r
 require(tidyverse)
 require(cowplot)
 
 elections <- read_csv("izbori.csv")
 
 head(elections)
+#> # A tibble: 6 x 33
+#>   Okrug `Naziv okruga` Opstina `Naziv opstine` `Biracko mesto` `Upisani biraci`
+#>   <dbl> <chr>            <dbl> <chr>                     <dbl>            <dbl>
+#> 1     0 Град Београд     70092 Барајево                      1              655
+#> 2     0 Град Београд     70092 Барајево                      2             1329
+#> 3     0 Град Београд     70092 Барајево                      3              578
+#> 4     0 Град Београд     70092 Барајево                      4              706
+#> 5     0 Град Београд     70092 Барајево                      5              734
+#> 6     0 Град Београд     70092 Барајево                      6              830
+#> # … with 27 more variables: Primljeni <dbl>, Neupotrebljeni <dbl>,
+#> #   Glasali <dbl>, `U glasackoj kutiji` <dbl>, Nevazeci <dbl>, Vazeci <dbl>,
+#> #   `Aleksandar Vucic` <dbl>, `Ivica Dacic` <dbl>, `Vojislav Seselj` <dbl>,
+#> #   `Istvan Pastor` <dbl>, `Aleksandar Sapic` <dbl>, `Gojko Zivkovic` <dbl>,
+#> #   UDS <dbl>, `Muamer Zukorlic` <dbl>, Metla <dbl>, `Milan Stamatovic` <dbl>,
+#> #   SDA <dbl>, Zavetnici <dbl>, `Narodni Blok` <dbl>, PSG <dbl>,
+#> #   Suverenisti <dbl>, `Ujedinjena Dolina` <dbl>, `Grupa Gradjana 1 od
+#> #   5` <dbl>, `Nek Maske Spadnu` <dbl>, `Ruska Stranka\n` <dbl>, `Cedomir
+#> #   Jovanovic` <dbl>, Levijatan <dbl>
 ```
-
-<div data-pagedtable="false">
-  <script data-pagedtable-source type="application/json">
-{"columns":[{"label":["Okrug"],"name":[1],"type":["dbl"],"align":["right"]},{"label":["Naziv okruga"],"name":[2],"type":["chr"],"align":["left"]},{"label":["Opstina"],"name":[3],"type":["dbl"],"align":["right"]},{"label":["Naziv opstine"],"name":[4],"type":["chr"],"align":["left"]},{"label":["Biracko mesto"],"name":[5],"type":["dbl"],"align":["right"]},{"label":["Upisani biraci"],"name":[6],"type":["dbl"],"align":["right"]},{"label":["Primljeni"],"name":[7],"type":["dbl"],"align":["right"]},{"label":["Neupotrebljeni"],"name":[8],"type":["dbl"],"align":["right"]},{"label":["Glasali"],"name":[9],"type":["dbl"],"align":["right"]},{"label":["U glasackoj kutiji"],"name":[10],"type":["dbl"],"align":["right"]},{"label":["Nevazeci"],"name":[11],"type":["dbl"],"align":["right"]},{"label":["Vazeci"],"name":[12],"type":["dbl"],"align":["right"]},{"label":["Aleksandar Vucic"],"name":[13],"type":["dbl"],"align":["right"]},{"label":["Ivica Dacic"],"name":[14],"type":["dbl"],"align":["right"]},{"label":["Vojislav Seselj"],"name":[15],"type":["dbl"],"align":["right"]},{"label":["Istvan Pastor"],"name":[16],"type":["dbl"],"align":["right"]},{"label":["Aleksandar Sapic"],"name":[17],"type":["dbl"],"align":["right"]},{"label":["Gojko Zivkovic"],"name":[18],"type":["dbl"],"align":["right"]},{"label":["UDS"],"name":[19],"type":["dbl"],"align":["right"]},{"label":["Muamer Zukorlic"],"name":[20],"type":["dbl"],"align":["right"]},{"label":["Metla"],"name":[21],"type":["dbl"],"align":["right"]},{"label":["Milan Stamatovic"],"name":[22],"type":["dbl"],"align":["right"]},{"label":["SDA"],"name":[23],"type":["dbl"],"align":["right"]},{"label":["Zavetnici"],"name":[24],"type":["dbl"],"align":["right"]},{"label":["Narodni Blok"],"name":[25],"type":["dbl"],"align":["right"]},{"label":["PSG"],"name":[26],"type":["dbl"],"align":["right"]},{"label":["Suverenisti"],"name":[27],"type":["dbl"],"align":["right"]},{"label":["Ujedinjena Dolina"],"name":[28],"type":["dbl"],"align":["right"]},{"label":["Grupa Gradjana 1 od 5"],"name":[29],"type":["dbl"],"align":["right"]},{"label":["Nek Maske Spadnu"],"name":[30],"type":["dbl"],"align":["right"]},{"label":["Ruska Stranka\n"],"name":[31],"type":["dbl"],"align":["right"]},{"label":["Cedomir Jovanovic"],"name":[32],"type":["dbl"],"align":["right"]},{"label":["Levijatan"],"name":[33],"type":["dbl"],"align":["right"]}],"data":[{"1":"0","2":"Град Београд","3":"70092","4":"Барајево","5":"1","6":"655","7":"653","8":"319","9":"334","10":"334","11":"9","12":"325","13":"243","14":"34","15":"7","16":"1","17":"3","18":"19","19":"1","20":"1","21":"5","22":"1","23":"0","24":"5","25":"2","26":"1","27":"1","28":"0","29":"0","30":"1","31":"0","32":"0","33":"0"},{"1":"0","2":"Град Београд","3":"70092","4":"Барајево","5":"2","6":"1329","7":"1330","8":"725","9":"605","10":"605","11":"21","12":"584","13":"363","14":"86","15":"18","16":"0","17":"32","18":"16","19":"1","20":"0","21":"12","22":"4","23":"0","24":"10","25":"1","26":"13","27":"11","28":"0","29":"3","30":"1","31":"2","32":"2","33":"9"},{"1":"0","2":"Град Београд","3":"70092","4":"Барајево","5":"3","6":"578","7":"578","8":"319","9":"259","10":"259","11":"6","12":"253","13":"173","14":"19","15":"6","16":"0","17":"10","18":"13","19":"1","20":"0","21":"12","22":"1","23":"0","24":"4","25":"3","26":"0","27":"6","28":"2","29":"0","30":"0","31":"1","32":"0","33":"2"},{"1":"0","2":"Град Београд","3":"70092","4":"Барајево","5":"4","6":"706","7":"706","8":"346","9":"360","10":"360","11":"8","12":"352","13":"244","14":"44","15":"9","16":"1","17":"13","18":"13","19":"0","20":"0","21":"6","22":"0","23":"1","24":"10","25":"0","26":"4","27":"0","28":"0","29":"1","30":"0","31":"0","32":"0","33":"6"},{"1":"0","2":"Град Београд","3":"70092","4":"Барајево","5":"5","6":"734","7":"734","8":"380","9":"354","10":"354","11":"9","12":"345","13":"263","14":"40","15":"13","16":"0","17":"8","18":"7","19":"0","20":"0","21":"1","22":"2","23":"0","24":"1","25":"0","26":"2","27":"2","28":"0","29":"0","30":"0","31":"0","32":"0","33":"6"},{"1":"0","2":"Град Београд","3":"70092","4":"Барајево","5":"6","6":"830","7":"830","8":"454","9":"376","10":"376","11":"8","12":"368","13":"270","14":"30","15":"11","16":"0","17":"19","18":"8","19":"0","20":"0","21":"3","22":"1","23":"0","24":"5","25":"2","26":"3","27":"3","28":"0","29":"4","30":"0","31":"0","32":"2","33":"7"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
-  </script>
-</div>
 
 # Izlaznost po okruzima
 
-
-```r
+``` r
 izlaznost <- elections %>%
   group_by(`Naziv okruga`) %>%
   summarize(
@@ -61,16 +64,20 @@ izlaznost <- elections %>%
   )
 
 head(izlaznost)
+#> # A tibble: 6 x 10
+#>   `Naziv okruga` `Upisani biraci` Primljeni Neupotrebljeni Glasali
+#>   <fct>                     <dbl>     <dbl>          <dbl>   <dbl>
+#> 1 Борски округ             119034    118989          61239   57750
+#> 2 Браничевски о…           179528    179479          86591   92888
+#> 3 Град Београд            1604376   1607606         993632  613974
+#> 4 Заводи за изв…             8646      8646           1473    7173
+#> 5 Зајечарски ок…            99975     99933          51589   48344
+#> 6 Западнобачки …           158970    158713          75112   83601
+#> # … with 5 more variables: `U glasackoj kutiji` <dbl>, Nevazeci <dbl>,
+#> #   Vazeci <dbl>, Izlaznost <dbl>, preko_50 <lgl>
 ```
 
-<div data-pagedtable="false">
-  <script data-pagedtable-source type="application/json">
-{"columns":[{"label":["Naziv okruga"],"name":[1],"type":["fctr"],"align":["left"]},{"label":["Upisani biraci"],"name":[2],"type":["dbl"],"align":["right"]},{"label":["Primljeni"],"name":[3],"type":["dbl"],"align":["right"]},{"label":["Neupotrebljeni"],"name":[4],"type":["dbl"],"align":["right"]},{"label":["Glasali"],"name":[5],"type":["dbl"],"align":["right"]},{"label":["U glasackoj kutiji"],"name":[6],"type":["dbl"],"align":["right"]},{"label":["Nevazeci"],"name":[7],"type":["dbl"],"align":["right"]},{"label":["Vazeci"],"name":[8],"type":["dbl"],"align":["right"]},{"label":["Izlaznost"],"name":[9],"type":["dbl"],"align":["right"]},{"label":["preko_50"],"name":[10],"type":["lgl"],"align":["right"]}],"data":[{"1":"Борски округ","2":"119034","3":"118989","4":"61239","5":"57750","6":"57740","7":"1758","8":"55982","9":"0.4851555","10":"FALSE"},{"1":"Браничевски округ","2":"179528","3":"179479","4":"86591","5":"92888","6":"92862","7":"3527","8":"89335","9":"0.5174012","10":"TRUE"},{"1":"Град Београд","2":"1604376","3":"1607606","4":"993632","5":"613974","6":"613515","7":"20616","8":"592899","9":"0.3826871","10":"FALSE"},{"1":"Заводи за извршење заводских санкција","2":"8646","3":"8646","4":"1473","5":"7173","6":"7173","7":"182","8":"6991","9":"0.8296322","10":"TRUE"},{"1":"Зајечарски округ","2":"99975","3":"99933","4":"51589","5":"48344","6":"48318","7":"1712","8":"46606","9":"0.4835609","10":"FALSE"},{"1":"Западнобачки округ","2":"158970","3":"158713","4":"75112","5":"83601","6":"83582","7":"3315","8":"80267","9":"0.5258917","10":"TRUE"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
-  </script>
-</div>
-
-
-```r
+``` r
 ggplot(
   izlaznost,
   aes(
@@ -88,12 +95,11 @@ ggplot(
   scale_fill_manual(values = c("dark red", "dark grey"))
 ```
 
-<img src="izbori_files/figure-html/unnamed-chunk-4-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="izbori_files/figure-gfm/unnamed-chunk-4-1.png" width="90%" style="display: block; margin: auto;" />
 
 # Broj glasova po okruzima
 
-
-```r
+``` r
 glasovi <- elections %>%
   gather(key = "Kandidat", value = "Broj glasova", -(1:12)) %>%
   group_by(`Naziv okruga`, `Kandidat`) %>%
@@ -114,16 +120,21 @@ glasovi <- elections %>%
     threshold = `Vazeci` * 0.03)
 
 head(glasovi)
+#> # A tibble: 6 x 13
+#>   `Naziv okruga` Kandidat `Upisani biraci` Primljeni Neupotrebljeni Glasali
+#>   <chr>          <chr>               <dbl>     <dbl>          <dbl>   <dbl>
+#> 1 Борски округ   Aleksan…           119034    118989          61239   57750
+#> 2 Борски округ   Aleksan…           119034    118989          61239   57750
+#> 3 Борски округ   Cedomir…           119034    118989          61239   57750
+#> 4 Борски округ   Gojko Z…           119034    118989          61239   57750
+#> 5 Борски округ   Grupa G…           119034    118989          61239   57750
+#> 6 Борски округ   Istvan …           119034    118989          61239   57750
+#> # … with 7 more variables: `U glasackoj kutiji` <dbl>, Nevazeci <dbl>,
+#> #   Vazeci <dbl>, `Broj glasova` <dbl>, Procenat <dbl>, preko_3_posto <lgl>,
+#> #   threshold <dbl>
 ```
 
-<div data-pagedtable="false">
-  <script data-pagedtable-source type="application/json">
-{"columns":[{"label":["Naziv okruga"],"name":[1],"type":["chr"],"align":["left"]},{"label":["Kandidat"],"name":[2],"type":["chr"],"align":["left"]},{"label":["Upisani biraci"],"name":[3],"type":["dbl"],"align":["right"]},{"label":["Primljeni"],"name":[4],"type":["dbl"],"align":["right"]},{"label":["Neupotrebljeni"],"name":[5],"type":["dbl"],"align":["right"]},{"label":["Glasali"],"name":[6],"type":["dbl"],"align":["right"]},{"label":["U glasackoj kutiji"],"name":[7],"type":["dbl"],"align":["right"]},{"label":["Nevazeci"],"name":[8],"type":["dbl"],"align":["right"]},{"label":["Vazeci"],"name":[9],"type":["dbl"],"align":["right"]},{"label":["Broj glasova"],"name":[10],"type":["dbl"],"align":["right"]},{"label":["Procenat"],"name":[11],"type":["dbl"],"align":["right"]},{"label":["preko_3_posto"],"name":[12],"type":["lgl"],"align":["right"]},{"label":["threshold"],"name":[13],"type":["dbl"],"align":["right"]}],"data":[{"1":"Борски округ","2":"Aleksandar Sapic","3":"119034","4":"118989","5":"61239","6":"57750","7":"57740","8":"1758","9":"55982","10":"1847","11":"0.0329927477","12":"TRUE","13":"1679.46"},{"1":"Борски округ","2":"Aleksandar Vucic","3":"119034","4":"118989","5":"61239","6":"57750","7":"57740","8":"1758","9":"55982","10":"38843","11":"0.6938480226","12":"TRUE","13":"1679.46"},{"1":"Борски округ","2":"Cedomir Jovanovic","3":"119034","4":"118989","5":"61239","6":"57750","7":"57740","8":"1758","9":"55982","10":"630","11":"0.0112536172","12":"FALSE","13":"1679.46"},{"1":"Борски округ","2":"Gojko Zivkovic","3":"119034","4":"118989","5":"61239","6":"57750","7":"57740","8":"1758","9":"55982","10":"1540","11":"0.0275088421","12":"FALSE","13":"1679.46"},{"1":"Борски округ","2":"Grupa Gradjana 1 od 5","3":"119034","4":"118989","5":"61239","6":"57750","7":"57740","8":"1758","9":"55982","10":"473","11":"0.0084491444","12":"FALSE","13":"1679.46"},{"1":"Борски округ","2":"Istvan Pastor","3":"119034","4":"118989","5":"61239","6":"57750","7":"57740","8":"1758","9":"55982","10":"38","11":"0.0006787896","12":"FALSE","13":"1679.46"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
-  </script>
-</div>
-
-
-```r
+``` r
 ggplot(
   glasovi,
   aes(
@@ -144,10 +155,9 @@ ggplot(
   scale_y_log10()
 ```
 
-<img src="izbori_files/figure-html/unnamed-chunk-6-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="izbori_files/figure-gfm/unnamed-chunk-6-1.png" width="90%" style="display: block; margin: auto;" />
 
-
-```r
+``` r
 ggplot(
   glasovi,
   aes(
@@ -167,19 +177,38 @@ ggplot(
   scale_fill_manual(values = c("dark red", "dark grey")) 
 ```
 
-<img src="izbori_files/figure-html/unnamed-chunk-7-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="izbori_files/figure-gfm/unnamed-chunk-7-1.png" width="90%" style="display: block; margin: auto;" />
 
 # Analiza poslednje decimale broja glasova
 
 Ova analiza je bazirana na sledecem radu:
 
-Beber, B., & Scacco, A. (2012). What the Numbers Say: A Digit-Based Test for Election Fraud. Political Analysis, 20(2), 211-234. doi:10.1093/pan/mps003
+Beber, B., & Scacco, A. (2012). What the Numbers Say: A Digit-Based Test
+for Election Fraud. Political Analysis, 20(2), 211-234.
+<doi:10.1093/pan/mps003>
 
-**Abstract**
->Is it possible to detect manipulation by looking only at electoral returns? Drawing on work in psychology, we exploit individuals' biases in generating numbers to highlight suspicious digit patterns in reported vote counts. First, we show that fair election procedures produce returns where last digits occur with equal frequency, but laboratory experiments indicate that individuals tend to favor some numerals over others, even when subjects have incentives to properly randomize. Second, individuals underestimate the likelihood of digit repetition in sequences of random integers, so we should observe relatively few instances of repeated numbers in manipulated vote tallies. Third, laboratory experiments demonstrate a preference for pairs of adjacent digits, which suggests that such pairs should be abundant on fraudulent return sheets. Fourth, subjects avoid pairs of distant numerals, so those should appear with lower frequency on tainted returns. We test for deviations in digit patterns using data from Sweden's 2002 parliamentary elections, Senegal's 2000 and 2007 presidential elections, and previously unavailable results from Nigeria's 2003 presidential election. In line with observers' expectations, we find substantial evidence that manipulation occurred in Nigeria as well as in Senegal in 2007.
+**Abstract** \>Is it possible to detect manipulation by looking only at
+electoral returns? Drawing on work in psychology, we exploit
+individuals’ biases in generating numbers to highlight suspicious
+digit patterns in reported vote counts. First, we show that fair
+election procedures produce returns where last digits occur with equal
+frequency, but laboratory experiments indicate that individuals tend to
+favor some numerals over others, even when subjects have incentives to
+properly randomize. Second, individuals underestimate the likelihood of
+digit repetition in sequences of random integers, so we should observe
+relatively few instances of repeated numbers in manipulated vote
+tallies. Third, laboratory experiments demonstrate a preference for
+pairs of adjacent digits, which suggests that such pairs should be
+abundant on fraudulent return sheets. Fourth, subjects avoid pairs of
+distant numerals, so those should appear with lower frequency on tainted
+returns. We test for deviations in digit patterns using data from
+Sweden’s 2002 parliamentary elections, Senegal’s 2000 and 2007
+presidential elections, and previously unavailable results from
+Nigeria’s 2003 presidential election. In line with observers’
+expectations, we find substantial evidence that manipulation occurred in
+Nigeria as well as in Senegal in 2007.
 
-
-```r
+``` r
 require(stringr)
 
 decimale <- elections %>%
@@ -189,26 +218,30 @@ decimale <- elections %>%
   )
 
 head(decimale)
+#> # A tibble: 6 x 15
+#>   Okrug `Naziv okruga` Opstina `Naziv opstine` `Biracko mesto` `Upisani biraci`
+#>   <dbl> <chr>            <dbl> <chr>                     <dbl>            <dbl>
+#> 1     0 Град Београд     70092 Барајево                      1              655
+#> 2     0 Град Београд     70092 Барајево                      2             1329
+#> 3     0 Град Београд     70092 Барајево                      3              578
+#> 4     0 Град Београд     70092 Барајево                      4              706
+#> 5     0 Град Београд     70092 Барајево                      5              734
+#> 6     0 Град Београд     70092 Барајево                      6              830
+#> # … with 9 more variables: Primljeni <dbl>, Neupotrebljeni <dbl>,
+#> #   Glasali <dbl>, `U glasackoj kutiji` <dbl>, Nevazeci <dbl>, Vazeci <dbl>,
+#> #   Kandidat <chr>, `Broj glasova` <dbl>, last_digit <fct>
 ```
-
-<div data-pagedtable="false">
-  <script data-pagedtable-source type="application/json">
-{"columns":[{"label":["Okrug"],"name":[1],"type":["dbl"],"align":["right"]},{"label":["Naziv okruga"],"name":[2],"type":["chr"],"align":["left"]},{"label":["Opstina"],"name":[3],"type":["dbl"],"align":["right"]},{"label":["Naziv opstine"],"name":[4],"type":["chr"],"align":["left"]},{"label":["Biracko mesto"],"name":[5],"type":["dbl"],"align":["right"]},{"label":["Upisani biraci"],"name":[6],"type":["dbl"],"align":["right"]},{"label":["Primljeni"],"name":[7],"type":["dbl"],"align":["right"]},{"label":["Neupotrebljeni"],"name":[8],"type":["dbl"],"align":["right"]},{"label":["Glasali"],"name":[9],"type":["dbl"],"align":["right"]},{"label":["U glasackoj kutiji"],"name":[10],"type":["dbl"],"align":["right"]},{"label":["Nevazeci"],"name":[11],"type":["dbl"],"align":["right"]},{"label":["Vazeci"],"name":[12],"type":["dbl"],"align":["right"]},{"label":["Kandidat"],"name":[13],"type":["chr"],"align":["left"]},{"label":["Broj glasova"],"name":[14],"type":["dbl"],"align":["right"]},{"label":["last_digit"],"name":[15],"type":["fctr"],"align":["left"]}],"data":[{"1":"0","2":"Град Београд","3":"70092","4":"Барајево","5":"1","6":"655","7":"653","8":"319","9":"334","10":"334","11":"9","12":"325","13":"Aleksandar Vucic","14":"243","15":"3"},{"1":"0","2":"Град Београд","3":"70092","4":"Барајево","5":"2","6":"1329","7":"1330","8":"725","9":"605","10":"605","11":"21","12":"584","13":"Aleksandar Vucic","14":"363","15":"3"},{"1":"0","2":"Град Београд","3":"70092","4":"Барајево","5":"3","6":"578","7":"578","8":"319","9":"259","10":"259","11":"6","12":"253","13":"Aleksandar Vucic","14":"173","15":"3"},{"1":"0","2":"Град Београд","3":"70092","4":"Барајево","5":"4","6":"706","7":"706","8":"346","9":"360","10":"360","11":"8","12":"352","13":"Aleksandar Vucic","14":"244","15":"4"},{"1":"0","2":"Град Београд","3":"70092","4":"Барајево","5":"5","6":"734","7":"734","8":"380","9":"354","10":"354","11":"9","12":"345","13":"Aleksandar Vucic","14":"263","15":"3"},{"1":"0","2":"Град Београд","3":"70092","4":"Барајево","5":"6","6":"830","7":"830","8":"454","9":"376","10":"376","11":"8","12":"368","13":"Aleksandar Vucic","14":"270","15":"0"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
-  </script>
-</div>
 
 ### Analiza poslednje decimale ukupno
 
-
-```r
+``` r
 table(decimale$last_digit)
 #> 
 #>     0     1     2     3     4     5     6     7     8     9 
 #> 73494 27723 17305 12881 10551  8892  7674  6872  6149  5552
 ```
 
-
-```r
+``` r
 ggplot(
   decimale,
   aes(x = last_digit)
@@ -220,12 +253,11 @@ ggplot(
   ylab("Proporcija")
 ```
 
-<img src="izbori_files/figure-html/unnamed-chunk-10-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="izbori_files/figure-gfm/unnamed-chunk-10-1.png" width="90%" style="display: block; margin: auto;" />
 
 Kada se izbace rezultati gde je broj glasova 0:
 
-
-```r
+``` r
 ggplot(
   filter(decimale, `Broj glasova` > 0),
   aes(x = last_digit)
@@ -239,12 +271,11 @@ ggplot(
   ylab("Proporcija")
 ```
 
-<img src="izbori_files/figure-html/unnamed-chunk-11-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="izbori_files/figure-gfm/unnamed-chunk-11-1.png" width="90%" style="display: block; margin: auto;" />
 
 Kada se izbace rezultati gde je broj glasova manji ili jednak 10:
 
-
-```r
+``` r
 ggplot(
   filter(decimale, `Broj glasova` >= 10),
   aes(x = last_digit)
@@ -258,12 +289,11 @@ ggplot(
   ylab("Proporcija")
 ```
 
-<img src="izbori_files/figure-html/unnamed-chunk-12-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="izbori_files/figure-gfm/unnamed-chunk-12-1.png" width="90%" style="display: block; margin: auto;" />
 
 Kada se izbace rezultati gde je broj glasova manji ili jednak 100:
 
-
-```r
+``` r
 ggplot(
   filter(decimale, `Broj glasova` >= 100),
   aes(x = last_digit)
@@ -277,13 +307,11 @@ ggplot(
   ylab("Proporcija")
 ```
 
-<img src="izbori_files/figure-html/unnamed-chunk-13-1.png" width="90%" style="display: block; margin: auto;" />
-
+<img src="izbori_files/figure-gfm/unnamed-chunk-13-1.png" width="90%" style="display: block; margin: auto;" />
 
 ### Analiza poslednje decimale po kandidatu
 
-
-```r
+``` r
 table(decimale$Kandidat, decimale$last_digit)
 #>                        
 #>                            0    1    2    3    4    5    6    7    8    9
@@ -310,8 +338,7 @@ table(decimale$Kandidat, decimale$last_digit)
 #>   Zavetnici             2117 1252 1019  893  713  640  558  458  432  351
 ```
 
-
-```r
+``` r
 ggplot(
   decimale,
   aes(x = last_digit)
@@ -323,12 +350,11 @@ ggplot(
   ylab("Broj pojavljivanja")
 ```
 
-<img src="izbori_files/figure-html/unnamed-chunk-15-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="izbori_files/figure-gfm/unnamed-chunk-15-1.png" width="90%" style="display: block; margin: auto;" />
 
 Kada se izbace rezultati gde je broj glasova 0:
 
-
-```r
+``` r
 ggplot(
   filter(decimale, `Broj glasova` > 0),
   aes(x = last_digit)
@@ -340,12 +366,11 @@ ggplot(
   ylab("Broj pojavljivanja")
 ```
 
-<img src="izbori_files/figure-html/unnamed-chunk-16-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="izbori_files/figure-gfm/unnamed-chunk-16-1.png" width="90%" style="display: block; margin: auto;" />
 
 Kada se izbace rezultati gde je broj glasova manji ili jednak 10:
 
-
-```r
+``` r
 ggplot(
   filter(decimale, `Broj glasova` >= 10),
   aes(x = last_digit)
@@ -357,12 +382,11 @@ ggplot(
   ylab("Broj pojavljivanja")
 ```
 
-<img src="izbori_files/figure-html/unnamed-chunk-17-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="izbori_files/figure-gfm/unnamed-chunk-17-1.png" width="90%" style="display: block; margin: auto;" />
 
 Kada se izbace rezultati gde je broj glasova manji ili jednak 100:
 
-
-```r
+``` r
 ggplot(
   filter(decimale, `Broj glasova` >= 100),
   aes(x = last_digit)
@@ -374,12 +398,11 @@ ggplot(
   ylab("Broj pojavljivanja")
 ```
 
-<img src="izbori_files/figure-html/unnamed-chunk-18-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="izbori_files/figure-gfm/unnamed-chunk-18-1.png" width="90%" style="display: block; margin: auto;" />
 
 ### Analiza poslednje decimale po okrugu
 
-
-```r
+``` r
 ggplot(
   decimale,
   aes(x = last_digit)
@@ -391,13 +414,11 @@ ggplot(
   ylab("Broj pojavljivanja")
 ```
 
-<img src="izbori_files/figure-html/unnamed-chunk-19-1.png" width="90%" style="display: block; margin: auto;" />
-
+<img src="izbori_files/figure-gfm/unnamed-chunk-19-1.png" width="90%" style="display: block; margin: auto;" />
 
 Kada se izbace rezultati gde je broj glasova 0:
 
-
-```r
+``` r
 ggplot(
   filter(decimale, `Broj glasova` > 0),
   aes(x = last_digit)
@@ -409,12 +430,11 @@ ggplot(
   ylab("Broj pojavljivanja")
 ```
 
-<img src="izbori_files/figure-html/unnamed-chunk-20-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="izbori_files/figure-gfm/unnamed-chunk-20-1.png" width="90%" style="display: block; margin: auto;" />
 
 Kada se izbace rezultati gde je broj glasova manji ili jednak 10:
 
-
-```r
+``` r
 ggplot(
   filter(decimale, `Broj glasova` >= 10),
   aes(x = last_digit)
@@ -426,12 +446,11 @@ ggplot(
   ylab("Broj pojavljivanja")
 ```
 
-<img src="izbori_files/figure-html/unnamed-chunk-21-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="izbori_files/figure-gfm/unnamed-chunk-21-1.png" width="90%" style="display: block; margin: auto;" />
 
 Kada se izbace rezultati gde je broj glasova manji ili jednak 100:
 
-
-```r
+``` r
 ggplot(
   filter(decimale, `Broj glasova` >= 100),
   aes(x = last_digit)
@@ -443,4 +462,6 @@ ggplot(
   ylab("Broj pojavljivanja")
 ```
 
-<img src="izbori_files/figure-html/unnamed-chunk-22-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="izbori_files/figure-gfm/unnamed-chunk-22-1.png" width="90%" style="display: block; margin: auto;" />
+
+1.  <https://www.rik.parlament.gov.rs/tekst/9386/ukupni-rezultati-izbora-za-narodne-poslanike-narodne-skupstine-2020-godine.php>
