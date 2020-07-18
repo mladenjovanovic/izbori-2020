@@ -639,7 +639,7 @@ Kada se izbace rezultati gde je broj glasova 0:
 
 ``` r
 # Sumarni graf
-plot_data <- filter(sim_decimale, `Broj glasova` > 0)  %>%
+plot_data <- filter(sim_decimale, `Broj glasova` > 0) %>%
   group_by(sim, last_digit) %>%
   summarize(n = n())
 
@@ -670,7 +670,7 @@ Kada se izbace rezultati gde je broj glasova manji ili jednak 10:
 
 ``` r
 # Sumarni graf
-plot_data <- filter(sim_decimale, `Broj glasova` >= 10)  %>%
+plot_data <- filter(sim_decimale, `Broj glasova` >= 10) %>%
   group_by(sim, last_digit) %>%
   summarize(n = n())
 
@@ -701,7 +701,7 @@ Kada se izbace rezultati gde je broj glasova manji ili jednak 100:
 
 ``` r
 # Sumarni graf
-plot_data <- filter(sim_decimale, `Broj glasova` >= 100)  %>%
+plot_data <- filter(sim_decimale, `Broj glasova` >= 100) %>%
   group_by(sim, last_digit) %>%
   summarize(n = n())
 
@@ -764,7 +764,7 @@ Kada se izbace rezultati gde je broj glasova 0:
 
 ``` r
 # Graf po kandidatu
-plot_data <- filter(sim_decimale, `Broj glasova` > 0)  %>%
+plot_data <- filter(sim_decimale, `Broj glasova` > 0) %>%
   group_by(sim, Kandidat, last_digit) %>%
   summarize(n = n())
 
@@ -796,7 +796,7 @@ Kada se izbace rezultati gde je broj glasova manji ili jednak 10:
 
 ``` r
 # Graf po kandidatu
-plot_data <- filter(sim_decimale, `Broj glasova` >= 10)  %>%
+plot_data <- filter(sim_decimale, `Broj glasova` >= 10) %>%
   group_by(sim, Kandidat, last_digit) %>%
   summarize(n = n())
 
@@ -828,7 +828,7 @@ Kada se izbace rezultati gde je broj glasova manji ili jednak 100:
 
 ``` r
 # Graf po kandidatu
-plot_data <- filter(sim_decimale, `Broj glasova` >= 100)  %>%
+plot_data <- filter(sim_decimale, `Broj glasova` >= 100) %>%
   group_by(sim, Kandidat, last_digit) %>%
   summarize(n = n())
 
@@ -855,3 +855,319 @@ ggplot(
 ```
 
 <img src="izbori_files/figure-gfm/unnamed-chunk-33-1.png" width="90%" style="display: block; margin: auto;" />
+
+## Simulacija koristeci lokalne rezultate
+
+Umesto da se koriste ukupne verovatnoce glasova, u ovoj simulaciji
+koristicemo lokalne, tj. za svako biracko mesto:
+
+``` r
+# ----------------------------------------------------
+# Simulacija koristeci lokalnu proporciju glasova
+# Ovo moze da potraje par sati
+pb <- progress_estimated(nrow(sim_izbori))
+
+sim_rezultati_local <- sim_izbori %>%
+  pmap_dfr(function(...) {
+    current <- tibble(...)
+    pb$tick()$print()
+
+    if (current$Vazeci == 0) {
+      glasanje <- current[14:34]
+    } else {
+      glasanje <- sample(
+        x = seq_along(prop_glasova),
+        size = current$Vazeci,
+        replace = TRUE,
+        prob = current[14:34]
+      )
+    }
+
+    glasanje <- factor(
+      glasanje,
+      levels = seq_along(prop_glasova)
+    )
+
+    current[14:34] <- t(as.numeric(table(glasanje)))
+
+    return(current)
+  })
+
+# Analiza poslednje decimale
+sim_decimale_local <- sim_rezultati_local %>%
+  gather(key = "Kandidat", value = "Broj glasova", -(1:13)) %>%
+  mutate(
+    last_digit = factor(str_sub(`Broj glasova`, -1, -1))
+  )
+
+sim_decimale_local
+#> # A tibble: 17,709,300 x 16
+#>      sim Okrug `Naziv okruga` Opstina `Naziv opstine` `Biracko mesto`
+#>    <int> <dbl> <chr>            <dbl> <chr>                     <dbl>
+#>  1     1     0 Град Београд     70092 Барајево                      1
+#>  2     1     0 Град Београд     70092 Барајево                      2
+#>  3     1     0 Град Београд     70092 Барајево                      3
+#>  4     1     0 Град Београд     70092 Барајево                      4
+#>  5     1     0 Град Београд     70092 Барајево                      5
+#>  6     1     0 Град Београд     70092 Барајево                      6
+#>  7     1     0 Град Београд     70092 Барајево                      7
+#>  8     1     0 Град Београд     70092 Барајево                      8
+#>  9     1     0 Град Београд     70092 Барајево                      9
+#> 10     1     0 Град Београд     70092 Барајево                     10
+#> # … with 17,709,290 more rows, and 10 more variables: `Upisani biraci` <dbl>,
+#> #   Primljeni <dbl>, Neupotrebljeni <dbl>, Glasali <dbl>, `U glasackoj
+#> #   kutiji` <dbl>, Nevazeci <dbl>, Vazeci <dbl>, Kandidat <chr>, `Broj
+#> #   glasova` <dbl>, last_digit <fct>
+```
+
+### Ukupna analiza
+
+``` r
+# Sumarni graf
+plot_data <- sim_decimale_local %>%
+  group_by(sim, last_digit) %>%
+  summarize(n = n())
+
+avg_data <- plot_data %>%
+  group_by(last_digit) %>%
+  summarize(mean = mean(n), min = min(n), max = max(n))
+
+ggplot(
+  plot_data,
+  aes(x = last_digit, y = n, group = sim)
+) +
+  theme_cowplot(8) +
+  geom_bar(data = data.frame(decimale, sim = 1), aes(y = (..count..))) +
+  # geom_line(data = plot_data, alpha = 0.1, color = "red") +
+  geom_ribbon(
+    data = avg_data,
+    aes(y = mean, ymin = min, ymax = max, group = 1),
+    alpha = 0.3, fill = "red"
+  ) +
+  geom_line(data = avg_data, aes(y = mean, group = 1), color = "red") +
+  xlab("Poslednja decimala") +
+  ylab("Broj pojavljivanja")
+```
+
+<img src="izbori_files/figure-gfm/unnamed-chunk-35-1.png" width="90%" style="display: block; margin: auto;" />
+
+Kada se izbace rezultati gde je broj glasova 0:
+
+``` r
+# Sumarni graf
+plot_data <- filter(sim_decimale_local, `Broj glasova` > 0) %>%
+  group_by(sim, last_digit) %>%
+  summarize(n = n())
+
+avg_data <- plot_data %>%
+  group_by(last_digit) %>%
+  summarize(mean = mean(n), min = min(n), max = max(n))
+
+ggplot(
+  plot_data,
+  aes(x = last_digit, y = n, group = sim)
+) +
+  theme_cowplot(8) +
+  geom_bar(data = data.frame(filter(decimale, `Broj glasova` > 0), sim = 1), aes(y = (..count..))) +
+  # geom_line(data = plot_data, alpha = 0.1, color = "red") +
+  geom_ribbon(
+    data = avg_data,
+    aes(y = mean, ymin = min, ymax = max, group = 1),
+    alpha = 0.3, fill = "red"
+  ) +
+  geom_line(data = avg_data, aes(y = mean, group = 1), color = "red") +
+  xlab("Poslednja decimala") +
+  ylab("Broj pojavljivanja")
+```
+
+<img src="izbori_files/figure-gfm/unnamed-chunk-36-1.png" width="90%" style="display: block; margin: auto;" />
+
+Kada se izbace rezultati gde je broj glasova manji ili jednak 10:
+
+``` r
+# Sumarni graf
+plot_data <- filter(sim_decimale_local, `Broj glasova` >= 10) %>%
+  group_by(sim, last_digit) %>%
+  summarize(n = n())
+
+avg_data <- plot_data %>%
+  group_by(last_digit) %>%
+  summarize(mean = mean(n), min = min(n), max = max(n))
+
+ggplot(
+  plot_data,
+  aes(x = last_digit, y = n, group = sim)
+) +
+  theme_cowplot(8) +
+  geom_bar(data = data.frame(filter(decimale, `Broj glasova` >= 10), sim = 1), aes(y = (..count..))) +
+  # geom_line(data = plot_data, alpha = 0.1, color = "red") +
+  geom_ribbon(
+    data = avg_data,
+    aes(y = mean, ymin = min, ymax = max, group = 1),
+    alpha = 0.3, fill = "red"
+  ) +
+  geom_line(data = avg_data, aes(y = mean, group = 1), color = "red") +
+  xlab("Poslednja decimala") +
+  ylab("Broj pojavljivanja")
+```
+
+<img src="izbori_files/figure-gfm/unnamed-chunk-37-1.png" width="90%" style="display: block; margin: auto;" />
+
+Kada se izbace rezultati gde je broj glasova manji ili jednak 100:
+
+``` r
+# Sumarni graf
+plot_data <- filter(sim_decimale_local, `Broj glasova` >= 100) %>%
+  group_by(sim, last_digit) %>%
+  summarize(n = n())
+
+avg_data <- plot_data %>%
+  group_by(last_digit) %>%
+  summarize(mean = mean(n), min = min(n), max = max(n))
+
+ggplot(
+  plot_data,
+  aes(x = last_digit, y = n, group = sim)
+) +
+  theme_cowplot(8) +
+  geom_bar(data = data.frame(filter(decimale, `Broj glasova` >= 100), sim = 1), aes(y = (..count..))) +
+  # geom_line(data = plot_data, alpha = 0.1, color = "red") +
+  geom_ribbon(
+    data = avg_data,
+    aes(y = mean, ymin = min, ymax = max, group = 1),
+    alpha = 0.3, fill = "red"
+  ) +
+  geom_line(data = avg_data, aes(y = mean, group = 1), color = "red") +
+  xlab("Poslednja decimala") +
+  ylab("Broj pojavljivanja")
+```
+
+<img src="izbori_files/figure-gfm/unnamed-chunk-38-1.png" width="90%" style="display: block; margin: auto;" />
+
+### Graf po kandidatu
+
+``` r
+# Graf po kandidatu
+plot_data <- sim_decimale_local %>%
+  group_by(sim, Kandidat, last_digit) %>%
+  summarize(n = n())
+
+avg_data <- plot_data %>%
+  group_by(Kandidat, last_digit) %>%
+  summarize(mean = mean(n), min = min(n), max = max(n))
+
+ggplot(
+  plot_data,
+  aes(x = last_digit, y = n, group = sim)
+) +
+  theme_cowplot(8) +
+  geom_bar(data = data.frame(decimale, sim = 1), aes(y = (..count..))) +
+  # geom_line(data = plot_data, alpha = 0.1, color = "red") +
+  geom_ribbon(
+    data = avg_data,
+    aes(y = mean, ymin = min, ymax = max, group = 1),
+    alpha = 0.3, fill = "red"
+  ) +
+  geom_line(data = avg_data, aes(y = mean, group = 1), color = "red") +
+  facet_wrap(~`Kandidat`, scales = "free_y") +
+  xlab("Poslednja decimala") +
+  ylab("Broj pojavljivanja")
+```
+
+<img src="izbori_files/figure-gfm/unnamed-chunk-39-1.png" width="90%" style="display: block; margin: auto;" />
+
+Kada se izbace rezultati gde je broj glasova 0:
+
+``` r
+# Graf po kandidatu
+plot_data <- filter(sim_decimale_local, `Broj glasova` > 0) %>%
+  group_by(sim, Kandidat, last_digit) %>%
+  summarize(n = n())
+
+avg_data <- plot_data %>%
+  group_by(Kandidat, last_digit) %>%
+  summarize(mean = mean(n), min = min(n), max = max(n))
+
+ggplot(
+  plot_data,
+  aes(x = last_digit, y = n, group = sim)
+) +
+  theme_cowplot(8) +
+  geom_bar(data = data.frame(filter(decimale, `Broj glasova` > 0), sim = 1), aes(y = (..count..))) +
+  # geom_line(data = plot_data, alpha = 0.1, color = "red") +
+  geom_ribbon(
+    data = avg_data,
+    aes(y = mean, ymin = min, ymax = max, group = 1),
+    alpha = 0.3, fill = "red"
+  ) +
+  geom_line(data = avg_data, aes(y = mean, group = 1), color = "red") +
+  facet_wrap(~`Kandidat`, scales = "free_y") +
+  xlab("Poslednja decimala") +
+  ylab("Broj pojavljivanja")
+```
+
+<img src="izbori_files/figure-gfm/unnamed-chunk-40-1.png" width="90%" style="display: block; margin: auto;" />
+
+Kada se izbace rezultati gde je broj glasova manji ili jednak 10:
+
+``` r
+# Graf po kandidatu
+plot_data <- filter(sim_decimale_local, `Broj glasova` >= 10) %>%
+  group_by(sim, Kandidat, last_digit) %>%
+  summarize(n = n())
+
+avg_data <- plot_data %>%
+  group_by(Kandidat, last_digit) %>%
+  summarize(mean = mean(n), min = min(n), max = max(n))
+
+ggplot(
+  plot_data,
+  aes(x = last_digit, y = n, group = sim)
+) +
+  theme_cowplot(8) +
+  geom_bar(data = data.frame(filter(decimale, `Broj glasova` >= 10), sim = 1), aes(y = (..count..))) +
+  # geom_line(data = plot_data, alpha = 0.1, color = "red") +
+  geom_ribbon(
+    data = avg_data,
+    aes(y = mean, ymin = min, ymax = max, group = 1),
+    alpha = 0.3, fill = "red"
+  ) +
+  geom_line(data = avg_data, aes(y = mean, group = 1), color = "red") +
+  facet_wrap(~`Kandidat`, scales = "free_y") +
+  xlab("Poslednja decimala") +
+  ylab("Broj pojavljivanja")
+```
+
+<img src="izbori_files/figure-gfm/unnamed-chunk-41-1.png" width="90%" style="display: block; margin: auto;" />
+
+Kada se izbace rezultati gde je broj glasova manji ili jednak 100:
+
+``` r
+# Graf po kandidatu
+plot_data <- filter(sim_decimale_local, `Broj glasova` >= 100) %>%
+  group_by(sim, Kandidat, last_digit) %>%
+  summarize(n = n())
+
+avg_data <- plot_data %>%
+  group_by(Kandidat, last_digit) %>%
+  summarize(mean = mean(n), min = min(n), max = max(n))
+
+ggplot(
+  plot_data,
+  aes(x = last_digit, y = n, group = sim)
+) +
+  theme_cowplot(8) +
+  geom_bar(data = data.frame(filter(decimale, `Broj glasova` >= 100), sim = 1), aes(y = (..count..))) +
+  # geom_line(data = plot_data, alpha = 0.1, color = "red") +
+  geom_ribbon(
+    data = avg_data,
+    aes(y = mean, ymin = min, ymax = max, group = 1),
+    alpha = 0.3, fill = "red"
+  ) +
+  geom_line(data = avg_data, aes(y = mean, group = 1), color = "red") +
+  facet_wrap(~`Kandidat`, scales = "free_y") +
+  xlab("Poslednja decimala") +
+  ylab("Broj pojavljivanja")
+```
+
+<img src="izbori_files/figure-gfm/unnamed-chunk-42-1.png" width="90%" style="display: block; margin: auto;" />
